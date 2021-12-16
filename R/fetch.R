@@ -12,48 +12,6 @@
 #   We need a DPoP token, not Bearer token, so can't use this approach
 #   Instead, req_oauth_solid_dpop invokes the authorization itself,
 #   i.e. it does not wait for req_perform
-#' @title Register dynamic client
-#' @param IDP Identity provider
-#' @import httr2
-#' @export
-solid_client_register_dyn <- function(IDP){
-
-  # 3. Retrieves OP Configuration
-  # i.e. Fetch IDP openid configuration
-  openid_config_url <- IDP
-  urltools::path(openid_config_url) <- ".well-known/openid-configuration"
-  configuration <- request(openid_config_url) %>%
-    req_perform() %>%
-    resp_body_json()
-
-  # Dynamic client registration
-  # TODO: could use client doc instead?
-  #  https://solid.github.io/solid-oidc/primer/#authorization-code-pkce-flow-step-7
-  rego <- request(configuration$registration_endpoint) %>%
-    req_body_json(list(application_type = "web",
-                       redirect_uris = list("http://localhost:1410/"),
-                       subject_type = "public",
-                       token_endpoint_auth_method = "client_secret_basic",
-                       id_token_signed_response_alg = "RS256",
-                       grant_types = list("authorization_code", "refresh_token","urn:ietf:params:oauth:grant-type:device_code")
-                       #grant_types = list("authorization_code", "refresh_token")
-    )) %>%
-    req_perform %>%
-    resp_body_json()
-
-
-  # 12. Generates a DPoP Client Key Pair
-  key <- openssl::ec_keygen()
-
-  client <- oauth_client(rego$client_id,
-                         configuration$token_endpoint,
-                         secret=rego$client_secret,
-                         auth=oauth_client_req_auth_dpop,
-                         key=key
-  )
-  client$authorization_endpoint <- configuration$authorization_endpoint
-  client
-}
 
 # This is similar to oauth_client_req_auth_jwt_sig (auth="jwt_sig")
 #  but uses a DPoP Header instead of urn:ietf:params:oauth:client-assertion-type:jwt-bearer
@@ -85,7 +43,7 @@ oauth_client_req_auth_dpop <- function(req,client){
 
 #' @title OAuth authentication with authorization code
 #' @param req httr2 req object
-#' @param client client object, as returned by solid_client_register_dyn
+#' @param client client object, as returned by \link{solid_client_register_dyn} or \link{solid_client_register_clientid}
 #' @return httr2 req object with authorization headers
 #' @description Uses oauth_flow_auth_code to generate an access token,
 #' used to authenticate the request with oauth_client_req_auth_dpop. The token

@@ -9,7 +9,7 @@ req_oauth_solid_dpop(req, client)
 \arguments{
 \item{req}{httr2 req object}
 
-\item{client}{client object, as returned by solid_client_register_dyn}
+\item{client}{client object, as returned by \link{solid_client_register_dyn} or \link{solid_client_register_clientid}}
 }
 \value{
 httr2 req object with authorization headers
