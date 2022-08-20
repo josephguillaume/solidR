@@ -5,6 +5,12 @@ https://solid.github.io/solid-oidc/primer/
 
 Example:
 ```R
+library(devtools)
+install_github("josephguillaume/solidR",depend=TRUE)
+
+library(solidR)
+library(httr2)
+
 client <- solid_client_register_dyn("https://solidcommunity.net")
 request(url) %>%
  req_oauth_solid_dpop(client) %>%
