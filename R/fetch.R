@@ -16,8 +16,6 @@
 # This is similar to oauth_client_req_auth_jwt_sig (auth="jwt_sig")
 #  but uses a DPoP Header instead of urn:ietf:params:oauth:client-assertion-type:jwt-bearer
 oauth_client_req_auth_dpop <- function(req,client){
-  params <- httr2:::compact(list(client_id = client$id,client_secret=client$secret))
-  #params <- httr2:::compact(list(client_id = client$id))
   key <- client$key
 
   # 13. Generates a DPoP Header
@@ -38,7 +36,7 @@ oauth_client_req_auth_dpop <- function(req,client){
 
   # This will tell the OP what the client's public key is
   req <- httr2::req_headers(req,DPoP=token_DPoP)
-  httr2::req_body_form(req, params)
+  httr2::req_body_form(req, client_id = client$id, client_secret=client$secret)
 }
 
 #' @title OAuth authentication with authorization code
